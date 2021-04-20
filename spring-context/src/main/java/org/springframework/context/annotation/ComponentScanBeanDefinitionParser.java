@@ -45,6 +45,9 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 用以解析XML配置中的 <context:component-scan/> 元素,用以在xml解析的过程中,将所有的注解通过扫描到当前容器内.
+ *
+ *
  * Parser for the {@code <context:component-scan/>} element.
  *
  * @author Mark Fisher

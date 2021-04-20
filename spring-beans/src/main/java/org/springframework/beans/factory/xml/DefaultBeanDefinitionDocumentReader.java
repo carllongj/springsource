@@ -80,6 +80,9 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	@Nullable
 	private XmlReaderContext readerContext;
 
+	/**
+	 * 将对应的Bean解析委托给了该类进行解析
+	 */
 	@Nullable
 	private BeanDefinitionParserDelegate delegate;
 
@@ -172,10 +175,12 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				Node node = nl.item(i);
 				if (node instanceof Element) {
 					Element ele = (Element) node;
+					// 如果当前是Beans标签的内容,则走处理默认元素的逻辑
 					if (delegate.isDefaultNamespace(ele)) {
 						parseDefaultElement(ele, delegate);
 					}
 					else {
+						//否则走解析非 其他类型的元素标签,如在 beans 中定义 <context:component-scan>.
 						delegate.parseCustomElement(ele);
 					}
 				}

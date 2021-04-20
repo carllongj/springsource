@@ -19,6 +19,9 @@ package org.springframework.beans.factory.config;
 import org.springframework.beans.BeansException;
 
 /**
+ * 该接口是 提供的一个 BeanFactoryPostProcessor, 用于在加载完成所有的BeanDefinition 之后调用所有的
+ * BeanFactoryProcessor 实现类,达到修改整个BeanFactory的效果.
+ *
  * Factory hook that allows for custom modification of an application context's
  * bean definitions, adapting the bean property values of the context's underlying
  * bean factory.
