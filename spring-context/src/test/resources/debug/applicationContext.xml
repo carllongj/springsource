@@ -6,6 +6,9 @@
         http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"> <!-- bean definitions here -->
 	<!-- 开启注解扫描 -->
 	<context:component-scan base-package="debug.bean"/>
+	<context:property-placeholder location="classpath:/debug/prop.properties"/>
+	<!-- 额外的配置将不会生效 -->
+	<context:property-placeholder location="classpath:/debug/other.properties" system-properties-mode="ENVIRONMENT"/>
 	<bean id="person" class="debug.bean.Person">
 		<property name="id" value="1"/>
 		<property name="name" value="carl"/>

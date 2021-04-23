@@ -14,7 +14,8 @@ public class CarPropertyBeanFactoryPostProcessor implements BeanFactoryPostProce
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		BeanDefinition beanDefinition = beanFactory.getBeanDefinition("car");
 		beanDefinition.getPropertyValues().add("id", "1");
-		beanDefinition.getPropertyValues().add("brand", "benz");
+		// 取消该字段赋值,获取配置文件中配置的属性值
+		//beanDefinition.getPropertyValues().add("brand", "benz");
 		beanDefinition.getPropertyValues().add("logo", "sq");
 	}
 }

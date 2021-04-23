@@ -149,6 +149,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		}
 
 		preProcessXml(root);
+		// 执行解析整个配置文件的处理逻辑
 		parseBeanDefinitions(root, this.delegate);
 		postProcessXml(root);
 
@@ -181,6 +182,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 					}
 					else {
 						//否则走解析非 其他类型的元素标签,如在 beans 中定义 <context:component-scan>.
+						// beans 中定义的 <context:property-placeholder> 也是如此
 						delegate.parseCustomElement(ele);
 					}
 				}

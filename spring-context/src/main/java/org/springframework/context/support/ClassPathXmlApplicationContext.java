@@ -143,6 +143,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 		setConfigLocations(configLocations);
 		if (refresh) {
 			// 进行刷新整个容器,若是新创建则加载整个容器(与刷新同效果),刷新整个容器
+			// Spring 中的核心逻辑方法,控制整个Spring的执行流程.
 			refresh();
 		}
 	}
