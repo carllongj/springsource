@@ -1,5 +1,6 @@
 package debug.bean;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -10,8 +11,10 @@ import org.springframework.stereotype.Service;
 public class Car {
 	private Integer id;
 
+	@Value("${name}")
 	private String brand;
 
+	@Value("${information}")
 	private String logo;
 
 	public void setId(Integer id) {

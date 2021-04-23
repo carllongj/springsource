@@ -107,6 +107,9 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 
 
 	/**
+	 * 通过指定的 namespaceURI来解析得到对应的处理器,这是Spring可以包含其它框架配置文件的机制
+	 * 通过 META-INF/spring.handlers 文件来加载所有的处理器配置文件
+	 *
 	 * Locate the {@link NamespaceHandler} for the supplied namespace URI
 	 * from the configured mappings.
 	 * @param namespaceUri the relevant namespace URI
