@@ -12,6 +12,12 @@ public class Person {
 
 	private Integer age;
 
+	private Car car;
+
+	public Person(Car car){
+		this.car = car;
+	}
+
 	public Integer getId() {
 		return id;
 	}
@@ -42,6 +48,7 @@ public class Person {
 				"id=" + id +
 				", name='" + name + '\'' +
 				", age=" + age +
+				", car=" + car +
 				'}';
 	}
 }

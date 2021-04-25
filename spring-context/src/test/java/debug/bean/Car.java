@@ -1,6 +1,7 @@
 package debug.bean;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 /**
@@ -8,13 +9,13 @@ import org.springframework.stereotype.Service;
  * 2021/4/20
  */
 @Service
+@DependsOn("dependsOnBean")
 public class Car {
 	private Integer id;
 
 	@Value("${name}")
 	private String brand;
 
-	@Value("${information}")
 	private String logo;
 
 	public void setId(Integer id) {
