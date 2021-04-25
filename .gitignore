@@ -26,7 +26,12 @@ buildSrc/build
 /integration-tests/build
 /src/asciidoc/build
 target/
-
+!spring-context/src/test/resources/org/springframework/aop/target/
+!spring-context/src/test/java/org/springframework/aop/target/
+!spring-aop/src/test/resources/org/springframework/aop/target/
+!spring-aop/src/test/java/org/springframework/aop/target/
+!spring-aop/src/main/java/org/springframework/aop/target/
+!spring-aop/src/main/java/org/springframework/aop/framework/autoproxy/target/
 # Eclipse artifacts, including WTP generated manifests
 .classpath
 .project
