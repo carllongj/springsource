@@ -16,13 +16,17 @@
 
 package org.springframework.beans.factory.config;
 
-import java.beans.PropertyDescriptor;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
 import org.springframework.lang.Nullable;
 
+import java.beans.PropertyDescriptor;
+
 /**
+ *
+ * 该类用于感知在Class<p>实例化之前</p>和<p>实例化之后</>
+ * 一般用于AOP中创建代理使用
+ *
  * Subinterface of {@link BeanPostProcessor} that adds a before-instantiation callback,
  * and a callback after instantiation but before explicit properties are set or
  * autowiring occurs.
