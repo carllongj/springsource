@@ -542,15 +542,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
+		// 需要提前设置是由于单例对象创建,开启了循环依赖设置并且遇到了循环依赖,才会将对应的bean添加到三级缓存中
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
-		// 若当前设置早期缓存用于解决循环依赖.
+		// 若当前设置早期缓存用于解决循环依赖(包括AOP的处理),即提前暴露代理对象
 		if (earlySingletonExposure) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
-			// 设置当前BeanName对应的Bean依赖
+			// 设置当前BeanName对应的Bean依赖,将对应的Bean,添加到三级缓存中,为了提前暴露代理对象
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -572,9 +573,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		// 当前是开启了提前暴露bean
 		if (earlySingletonExposure) {
+			// 尝试获取对应的单例bean,并且通过singleton方法不进行创建对象了
 			Object earlySingletonReference = getSingleton(beanName, false);
+			// 当前存在早期暴露的缓存
 			if (earlySingletonReference != null) {
+				// 两个bean引用相同,说明未经过 Spring AOP 处理
 				if (exposedObject == bean) {
 					exposedObject = earlySingletonReference;
 				}
@@ -930,6 +935,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
 					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+					// 通过实现 SmartInstantiationAwareBeanPostProcessor 接口来包装指定的类,用于提前暴露.
 					exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
 				}
 			}
@@ -1398,6 +1404,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 					// 通过 InstantiationAwareBeanPostProcessor 来修改对应的属性值,Value 注解则通过实现该接口来将对应的属性值注入
+					// 通过 Autowired 属性注入也是通过对应的 AutowiredAnnotationBeanPostProcessor 来实现
 					PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
 						if (filteredPds == null) {
