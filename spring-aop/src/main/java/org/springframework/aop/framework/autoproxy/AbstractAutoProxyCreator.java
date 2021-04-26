@@ -16,19 +16,9 @@
 
 package org.springframework.aop.framework.autoproxy;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.TargetSource;
@@ -49,6 +39,10 @@ import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostP
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.lang.reflect.Constructor;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
@@ -235,8 +229,12 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
+		// 获取缓存记录的KEY,所有的CacheKey都由对应的Bean的Class和BeanName生成
+		// 若beanName有值,则使用beanName,否则使用bean的class来作为Key
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
+		// 记录当前的缓存的KEY和Bean对象
 		this.earlyProxyReferences.put(cacheKey, bean);
+		// 返回是否需要进行包装当前的bean.
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
@@ -326,33 +324,41 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	/**
 	 * Wrap the given bean if necessary, i.e. if it is eligible for being proxied.
-	 * @param bean the raw bean instance
-	 * @param beanName the name of the bean
-	 * @param cacheKey the cache key for metadata access
-	 * @return a proxy wrapping the bean, or the raw bean instance as-is
+	 * @param bean the raw bean instance 原始的bean对象
+	 * @param beanName the name of the bean bean的名称
+	 * @param cacheKey the cache key for metadata access 用于访问的元数据key
+	 * @return a proxy wrapping the bean, or the raw bean instance as-is 返回一个代理的bean,若该bean不需要代理,返回原始bean.
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
+		// 从代理的信息中获取该bean是否被代理,若未被代理,则返回原始bean.
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
+		// 若指定的bean为对应生成代理类的bean,则这些bean不使用代理
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
 		}
 
 		// Create proxy if we have advice.
+		// 获取当前的bean需要进行代理的数组
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+		// 若返回的集合不为null,表示发现了当前bean需要进行代理,则进行代理
 		if (specificInterceptors != DO_NOT_PROXY) {
+			// 表示当前bean经过了代理,记录该信息
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			// 创建对应的代理对象.
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+			// 记录当前代理的类型定义
 			this.proxyTypes.put(cacheKey, proxy.getClass());
 			return proxy;
 		}
 
+		// 缓存当前的bean是未经过代理的,直接返回对应的bean
 		this.advisedBeans.put(cacheKey, Boolean.FALSE);
 		return bean;
 	}
@@ -458,6 +464,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			}
 		}
 
+		// 创建该bean对应的所有增强器
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
@@ -468,6 +475,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			proxyFactory.setPreFiltered(true);
 		}
 
+		// 返回创建的代理对象
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 
