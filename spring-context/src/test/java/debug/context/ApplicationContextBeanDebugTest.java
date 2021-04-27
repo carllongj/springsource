@@ -1,9 +1,6 @@
 package debug.context;
 
-import debug.bean.Car;
-import debug.bean.CircleA;
-import debug.bean.CircleB;
-import debug.bean.Person;
+import debug.bean.*;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -24,6 +21,9 @@ public class ApplicationContextBeanDebugTest {
 		CircleA circleA = (CircleA) context.getBean("circleA");
 		circleA.call();
 		circleB.call();
+
+		DatabaseConnectionInformation contextBean = context.getBean(DatabaseConnectionInformation.class);
+		System.out.println(contextBean.toString());
 	}
 
 	@Test

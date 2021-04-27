@@ -122,7 +122,7 @@ public class InjectionMetadata {
 		Collection<InjectedElement> elementsToIterate =
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
-			// 注入可能有多个
+			// 注入可能有多个,循环遍历所有需要注入的属性,进行遍历迭代
 			for (InjectedElement element : elementsToIterate) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Processing injected element of bean '" + beanName + "': " + element);
@@ -229,10 +229,12 @@ public class InjectionMetadata {
 		}
 
 		/**
+		 * 执行当前的注入逻辑,由于方法可以被子类重写,故根据对应的子类类型来确定注入
 		 * Either this or {@link #getResourceToInject} needs to be overridden.
 		 */
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {
+
 
 			if (this.isField) {
 				Field field = (Field) this.member;

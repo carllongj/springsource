@@ -373,6 +373,13 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		return (candidateConstructors.length > 0 ? candidateConstructors : null);
 	}
 
+	/**
+	 * 进行属性注入,包含对应@Autowired 注解, @Value注解
+	 * @param pvs
+	 * @param bean
+	 * @param beanName
+	 * @return
+	 */
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
 		// 获取注入的元数据信息
@@ -434,6 +441,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
+					// 获取所有需要注入的属性列表
 					metadata = buildAutowiringMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
@@ -607,7 +615,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		}
 
 		/**
-		 *  属性字段用于注入
+		 *  属性字段用于注入,单个字段的属性注入
 		 * @param bean
 		 * @param beanName
 		 * @param pvs
@@ -615,20 +623,22 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		 */
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
+			// 当前类型为字段类型
 			Field field = (Field) this.member;
 			Object value;
 			if (this.cached) {
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 			}
 			else {
-				// 获取依赖描述信息
+				// 获取依赖描述信息,并且确定当前是否为必须要注入
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 				desc.setContainingClass(bean.getClass());
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 				Assert.state(beanFactory != null, "No BeanFactory available");
+				// 获取类型转换器
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
-					// 用来处理依赖注入
+					// 用来处理依赖的注入或者属性注入
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {

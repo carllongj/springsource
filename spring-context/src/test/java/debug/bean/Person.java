@@ -1,5 +1,7 @@
 package debug.bean;
 
+import org.springframework.beans.factory.annotation.Value;
+
 /**
  * @author longjie
  * 2021/4/20
@@ -8,6 +10,7 @@ public class Person {
 
 	private Integer id;
 
+	@Value("${test}")
 	private String name;
 
 	private Integer age;

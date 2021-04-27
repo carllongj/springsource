@@ -16,20 +16,19 @@
 
 package org.springframework.core.io.support;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Properties;
 
 /**
  * Base class for JavaBean-style components that need to load properties
@@ -141,6 +140,8 @@ public abstract class PropertiesLoaderSupport {
 
 
 	/**
+	 * 加载所有的properties配置文件,遍历所有的location地址,加载所有的配置信息
+	 *
 	 * Return a merged Properties instance containing both the
 	 * loaded properties and properties set on this FactoryBean.
 	 */
@@ -160,6 +161,7 @@ public abstract class PropertiesLoaderSupport {
 
 		if (!this.localOverride) {
 			// Load properties from file afterwards, to let those properties override.
+			// 加载所有的配置文件,只针对一个 PropertyLoader
 			loadProperties(result);
 		}
 
@@ -174,11 +176,13 @@ public abstract class PropertiesLoaderSupport {
 	 */
 	protected void loadProperties(Properties props) throws IOException {
 		if (this.locations != null) {
+			// 解析配置中的所有配置项,placeholder中的location 配置时需要使用逗号隔开,但配置多个无效
 			for (Resource location : this.locations) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Loading properties file from " + location);
 				}
 				try {
+					// 加载所有的配置文件
 					PropertiesLoaderUtils.fillProperties(
 							props, new EncodedResource(location, this.fileEncoding), this.propertiesPersister);
 				}

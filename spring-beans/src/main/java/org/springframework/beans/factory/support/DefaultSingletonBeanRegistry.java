@@ -187,7 +187,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		// Quick check for existing instance without full singleton lock
 		// 从 已经创建好的单例中(一级缓存中) 尝试获取对象,若获取成功则直接返回该对象.
 		Object singletonObject = this.singletonObjects.get(beanName);
-		// 当前的对象还未创建好,并且当前的Bean已经在创建中,则表示可以从二级缓存中获取
+		// 当前的对象还未创建好,并且当前的Bean已经在创建中(出现了循环依赖),则表示可以从二级缓存中获取
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			// 尝试从创建好,属性还未填充的早期暴露缓存中获取(二级缓存)
 			singletonObject = this.earlySingletonObjects.get(beanName);

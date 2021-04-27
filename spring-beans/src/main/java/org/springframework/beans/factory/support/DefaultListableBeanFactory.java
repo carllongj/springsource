@@ -863,6 +863,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 所有的bean都创建完成
 		// Trigger post-initialization callback for all applicable beans...
 		// 调用所有的 SmartInitializingSingleton 子类方法,即所有bean构造完成后通过该接口调用
 		for (String beanName : beanNames) {
@@ -1170,7 +1171,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	/**
-	 *  解决依赖注入
+	 *  解决依赖注入,包含 @Value,@Autowired,@Quilfier
 	 *
 	 * @param descriptor the descriptor for the dependency (field/method/constructor)
 	 * @param requestingBeanName the name of the bean which declares the given dependency
@@ -1230,11 +1231,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 			// 获取依赖的类型
 			Class<?> type = descriptor.getDependencyType();
+			// 获取到注解上对应的值
 			Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor);
-			// 非Bean注入
+			// 当前的注解上是否存在对应的名称描述,如Value中的${...}信息
 			if (value != null) {
 				if (value instanceof String) {
+					// 用以解析得到绑定后的内容,例如将${app.name}解析得到app.name对应的值
 					String strVal = resolveEmbeddedValue((String) value);
+					// 得到beanName对应的BeanDefinition信息,
 					BeanDefinition bd = (beanName != null && containsBean(beanName) ?
 							getMergedBeanDefinition(beanName) : null);
 					// 得到真实的注入值

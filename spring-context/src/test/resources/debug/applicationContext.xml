@@ -14,9 +14,21 @@
 	<context:component-scan base-package="debug.bean"/>
 	<!-- 开启自动代理扫描 -->
 	<aop:aspectj-autoproxy/>
-	<context:property-placeholder location="classpath:/debug/prop.properties"/>
-	<!-- 额外的配置将不会生效 -->
-	<context:property-placeholder location="classpath:/debug/other.properties" system-properties-mode="ENVIRONMENT"/>
+	<!-- <context:property-placeholder location="classpath:/debug/prop.properties"/> -->
+	<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:/debug/applicationContext-${active}.properties</value>
+				<value>classpath:/debug/prop.properties</value>
+			</list>
+		</property>
+	</bean>
+	<!-- 额外的配置将不会生效 可以通过
+<context:property-placeholder location="classpath:/debug/prop.properties,classpath:/debug/other.properties"/>
+	 达到配置多个路径,也可以通过
+	 <bean >-->
+	<!-- 该配置不会生效 -->
+	<!-- <context:property-placeholder location="classpath:/debug/other.properties"/> -->
 	<bean id="person" class="debug.bean.Person">
 		<property name="id" value="1"/>
 		<property name="name" value="carl"/>

@@ -16,26 +16,27 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-import java.util.Properties;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.ConfigurablePropertyResolver;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.PropertiesPropertySource;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.env.PropertySources;
-import org.springframework.core.env.PropertySourcesPropertyResolver;
+import org.springframework.core.env.*;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringValueResolver;
 
+import java.io.IOException;
+import java.util.Properties;
+
 /**
+ * 用于 获取配置的 properties 配置文件的配置类.在Spring 中注册该bean就可以加载额外的一些 properties 配置文件
+ * 该类 也是 BeanFactoryPostProcessor 的一个实例,故在BeanFactory 处理过程中,对应的配置文件处理逻辑会被执行
+ * 该类实现了Environment接口,提供了从环境变量中获取配置项的能力,如果一个配置项找不到时,还会从Environment 中去寻找对应的配置项.
+ *
+ * 该类是一个BeanFactoryPostProcessor的实例,该类虽然可以在容器中存在多个实例,但是只有最上层扫描的实例才生效,是因为在处理第一个扫描时
+ * 若未加载到需要的配置项,那么将会抛出异常,换言之,它将不会扫描剩余 实例是否存在配置项.
+ *
  * Specialization of {@link PlaceholderConfigurerSupport} that resolves ${...} placeholders
  * within bean definition property values and {@code @Value} annotations against the current
  * Spring {@link Environment} and its set of {@link PropertySources}.
@@ -140,6 +141,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				);
 			}
 			try {
+				// 加载所有的本地配置文件,针对单个的 PropertySourcesPlaceholderConfigurer 实例,加载其配置的所有的properties 配置文件
 				PropertySource<?> localPropertySource =
 						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
 				if (this.localOverride) {
@@ -154,7 +156,9 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 			}
 		}
 
+		// 处理所有的配置文件
 		processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
+		// 记录已经处理完成的配置项
 		this.appliedPropertySources = this.propertySources;
 	}
 
