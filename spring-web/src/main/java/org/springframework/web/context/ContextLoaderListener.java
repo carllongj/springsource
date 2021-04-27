@@ -23,6 +23,14 @@ import javax.servlet.ServletContextListener;
  * Bootstrap listener to start up and shut down Spring's root {@link WebApplicationContext}.
  * Simply delegates to {@link ContextLoader} as well as to {@link ContextCleanupListener}.
  *
+ * 该监听器用于实现Spring 自动装配对应的IOC容器,若配置该类表示将会使用一个上层的Spring容器,该容器用于对
+ * Web层的bean容器提供支持,有效的隔离 web应用中bean 的耦合度.
+ * SpringMVC 的DispatcherServlet 会自带有一个容器,若该监听器不配置,那么SpringMVC会须将所有的bean集中到
+ * DispatcherServlet的容器中,配置了该配置项,将组成父子容器.
+ * 最佳实践则是 Controller相关配置由 DispatcherServlet对应的容器来启动,
+ * 而 Server DAO相关的配置则由该配置项启动的容器管理.
+ * 父子容器存在一个子容器可以访问父容器,而父容器无法访问子容器的关系
+ *
  * <p>As of Spring 3.1, {@code ContextLoaderListener} supports injecting the root web
  * application context via the {@link #ContextLoaderListener(WebApplicationContext)}
  * constructor, allowing for programmatic configuration in Servlet 3.0+ environments.
@@ -97,6 +105,8 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 	/**
 	 * Initialize the root web application context.
+	 * 当 web server 开启启动时,会加载当前的初始化事件,用于初始化WebApplicationContext.
+	 * 此时Spring容器就已经初始化完成
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
