@@ -16,10 +16,6 @@
 
 package org.springframework.web.method.support;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -31,6 +27,10 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.HandlerMethod;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * Extension of {@link HandlerMethod} that invokes the underlying method with
@@ -49,6 +49,9 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	@Nullable
 	private WebDataBinderFactory dataBinderFactory;
 
+	/**
+	 * 所有配置的参数解析器集合,外部可以通过添加对应的解析器来解析需要的参数
+	 */
 	private HandlerMethodArgumentResolverComposite resolvers = new HandlerMethodArgumentResolverComposite();
 
 	private ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
@@ -130,11 +133,12 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	@Nullable
 	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-
+		// 获取当前方法的所有的参数列表
 		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Arguments: " + Arrays.toString(args));
 		}
+		// 执行对应的方法逻辑
 		return doInvoke(args);
 	}
 
@@ -147,23 +151,34 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	protected Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		// 获取当前方法的所有参数
 		MethodParameter[] parameters = getMethodParameters();
+		// 若当前的参数为空,则不需要传递参数
 		if (ObjectUtils.isEmpty(parameters)) {
 			return EMPTY_ARGS;
 		}
 
+		// 开始填充所有的参数信息
 		Object[] args = new Object[parameters.length];
+		// 遍历每一个参数的信息
 		for (int i = 0; i < parameters.length; i++) {
 			MethodParameter parameter = parameters[i];
+			// 设置参数名称解析处理(设置 参数名称与对应请求参数进行绑定)
+			// 若通过注解设置了名称,则会使用注解的名称,否则将通过参数名称解析器将参数名和请求参数的名称进行绑定
 			parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
+
 			args[i] = findProvidedArgument(parameter, providedArgs);
+			// 一般该值都会为null
 			if (args[i] != null) {
 				continue;
 			}
+
+			//判断当前 所有的解析器 是否支持该参数类型
 			if (!this.resolvers.supportsParameter(parameter)) {
 				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
 			}
 			try {
+				// 通过解析来获取对应的参数
 				args[i] = this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory);
 			}
 			catch (Exception ex) {
@@ -177,6 +192,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 				throw ex;
 			}
 		}
+		// 所有的参数解析完成
 		return args;
 	}
 

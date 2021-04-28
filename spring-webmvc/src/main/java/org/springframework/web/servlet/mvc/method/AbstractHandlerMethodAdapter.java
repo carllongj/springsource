@@ -16,15 +16,15 @@
 
 package org.springframework.web.servlet.mvc.method;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.core.Ordered;
 import org.springframework.lang.Nullable;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.WebContentGenerator;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Abstract base class for {@link HandlerAdapter} implementations that support
@@ -84,6 +84,7 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	public final ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 
+		// 所有通过 对应注册器注册的,都由适配器来进行调用,故当前的 处理器 一定是 HandlerMethod 类型
 		return handleInternal(request, response, (HandlerMethod) handler);
 	}
 

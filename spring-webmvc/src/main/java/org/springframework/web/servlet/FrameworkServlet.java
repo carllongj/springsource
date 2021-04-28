@@ -719,6 +719,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 		postProcessWebApplicationContext(wac);
 		applyInitializers(wac);
+		// 刷新整个ApplicationContext
 		wac.refresh();
 	}
 
@@ -903,6 +904,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			processRequest(request, response);
 		}
 		else {
+			// 调用父类的service方法
 			super.service(request, response);
 		}
 	}
@@ -1026,6 +1028,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			// 执行对应的处理逻辑
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {

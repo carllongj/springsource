@@ -944,6 +944,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			// 所有请求的入口,在此方法进行接口数据分发
 			doDispatch(request, response);
 		}
 		finally {
@@ -1013,34 +1014,46 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// 校验是否为多部件请求参数
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// 根据请求的地址,获取真正的处理器执行链
 				mappedHandler = getHandler(processedRequest);
+				// 未找到指定的处理器,则返回404
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
+				// 此处获取执行器链对应的适配器,用于执行对应的执行器中的逻辑
+				// Spring 通过 处理器适配器来指定对应处理器的逻辑,对于开发者而言,此种方式
+				// 可以避免开发者编写对应的处理器,提供默认使用的处理器,然后由适配器来执行,用户
+				// 也可以通过编写新的处理器和适配器来进行扩展映射器和适配器,
+				// 开发者不需要感知到对应的处理器和适配器的存在,提供了横向扩展
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
 				if (isGet || "HEAD".equals(method)) {
+					// 校验当前处理器上次修改的时间,若未进行修改,请是GET请求,直接返回
 					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
 					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
 						return;
 					}
 				}
 
+				// 拦截器三步骤的第一个步骤,应用所有拦截器的 preHandle 方法,从第一个拦截器依次到最后一个拦截器
+				// 只要有一个拦截器的校验不通过,则直接返回.
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// Actually invoke the handler.
+				// 此处就是适配器生效的步骤,由适配器去决定方法应该如何被调用
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1048,6 +1061,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+				// 处理器执行完成,调用所有的拦截器执行 postHandler 方法
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1058,12 +1072,15 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			// 正常执行完成的逻辑,内部包含了调用所有拦截器完成时的 afterCompletion 方法
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
+			// 最外部异常,通知拦截器处理对应的
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
+			// 出现了相关异常
 			triggerAfterCompletion(processedRequest, response, mappedHandler,
 					new NestedServletException("Handler processing failed", err));
 		}
@@ -1234,7 +1251,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	@Nullable
 	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
 		if (this.handlerMappings != null) {
+			// 遍历所有的 handlerMappings,一般默认使用的 RequestMappingHandlerMapping 类.
 			for (HandlerMapping mapping : this.handlerMappings) {
+				// 遍历所有的 handlerMapping, 得到对应的执行器链
 				HandlerExecutionChain handler = mapping.getHandler(request);
 				if (handler != null) {
 					return handler;

@@ -16,18 +16,16 @@
 
 package org.springframework.web.servlet;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Handler execution chain, consisting of handler object and any handler interceptors.
@@ -149,9 +147,13 @@ public class HandlerExecutionChain {
 			for (int i = 0; i < interceptors.length; i++) {
 				HandlerInterceptor interceptor = interceptors[i];
 				if (!interceptor.preHandle(request, response, this.handler)) {
+					// 当执行到某一个拦截器被阻止,则会调用对应的拦截器并且调用其 afterCompletion 方法
 					triggerAfterCompletion(request, response, null);
+					// 表示请求被阻止
 					return false;
 				}
+
+				// 记录当前执行到的处理器
 				this.interceptorIndex = i;
 			}
 		}
