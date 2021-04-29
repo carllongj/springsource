@@ -16,12 +16,12 @@
 
 package org.springframework.web.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.ResourceEntityResolver;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+
+import java.io.IOException;
 
 /**
  * {@link org.springframework.web.context.WebApplicationContext} implementation
@@ -72,6 +72,8 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 
 
 	/**
+	 * 用以加载配置中所有的beanDefinition 信息,会在整个Spring ApplicationContext refresh 时进行重新加载时调用
+	 *
 	 * Loads the bean definitions via an XmlBeanDefinitionReader.
 	 * @see org.springframework.beans.factory.xml.XmlBeanDefinitionReader
 	 * @see #initBeanDefinitionReader
@@ -80,6 +82,7 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
 		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
+		// 创建一个 Xml 配置文件对应的 BeanDefinitionReader ,并且将所有读取到的配置文件用以加载到该beanFactory中
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
 		// Configure the bean definition reader with this context's
@@ -90,7 +93,9 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
+		// 钩子函数,将当前创建的beanDefinitionReader 传递给子类做自定义初始化
 		initBeanDefinitionReader(beanDefinitionReader);
+		// 加载所有的配置文件,读取配置文件中的所有 BeanDefinition.
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
@@ -107,6 +112,11 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 	}
 
 	/**
+	 * XmlWebApplicationContext 不继承于AbstractXmlApplicationContext
+	 * 目的猜想:	1. 区分应用之间的关系
+	 * 			2. 外部配置文件相较于AbstractXmlApplicationContext 更明确.
+	 * 			3. 自己想多了
+	 *
 	 * Load the bean definitions with the given XmlBeanDefinitionReader.
 	 * <p>The lifecycle of the bean factory is handled by the refreshBeanFactory method;
 	 * therefore this method is just supposed to load and/or register bean definitions.
@@ -119,9 +129,12 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 	 * @see #getResourcePatternResolver
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws IOException {
+		// 获取所有配置的路径,若在web.xml未进行配置对应的配置属性,则使用默认的配置文件路径,
+		// 取决于namespace如果不为null,则为 /WEB-INF/namespace.xml,否则/WEB-INF/applicationContext.xml.
 		String[] configLocations = getConfigLocations();
 		if (configLocations != null) {
 			for (String configLocation : configLocations) {
+				// 加载配置文件中的BeanDefinition
 				reader.loadBeanDefinitions(configLocation);
 			}
 		}

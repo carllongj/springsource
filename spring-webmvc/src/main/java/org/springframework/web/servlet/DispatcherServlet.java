@@ -595,7 +595,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		// 是否要探测所有的处理器映射,
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
-			// 获取所有的匹配到 HandlerMapping 的实例Bean
+			// 从容器中获取所有的匹配到 HandlerMapping 的实例Bean
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			// 若获取到的映射不为空,则将其加入到所有的映射器中,并且将其排序

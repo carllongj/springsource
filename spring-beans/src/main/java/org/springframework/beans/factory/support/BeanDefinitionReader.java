@@ -83,6 +83,9 @@ public interface BeanDefinitionReader {
 
 
 	/**
+	 * 从指定的资源中加载所有的BeanDefinition,与调用方 loadBeanDefinitions 的区别是在于将
+	 * 文件路径转换成具体的资源了
+	 *
 	 * Load bean definitions from the specified resource.
 	 * @param resource the resource descriptor
 	 * @return the number of bean definitions found

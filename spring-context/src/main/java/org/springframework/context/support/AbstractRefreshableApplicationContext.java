@@ -139,6 +139,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			// 加载所有的BeanDefinition 信息,此处的加载将获取所有配置的BeanDefinition,包括配置文件,注解配置.
 			// (若是配置文件配置和注解配置并用,则配置文件中需要配置 <context:component-scan> 配置),用于扫描所有的配置信息
 			loadBeanDefinitions(beanFactory);
+			// 获取完成所有的beanDefinition 配置信息,则当前容器的第一步加载所有BeanDefinition完成
 			this.beanFactory = beanFactory;
 		}
 		catch (IOException ex) {
