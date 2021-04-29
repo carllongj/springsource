@@ -16,30 +16,8 @@
 
 package org.springframework.web.servlet;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -65,7 +43,18 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.WebUtils;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
+ * HTTP请求处理的核心类,容器的加载创建初始化由 FrameWorkServlet 完成
+ *
  * Central dispatcher for HTTP request handlers/controllers, e.g. for web UI controllers
  * or HTTP-based remote service exporters. Dispatches to registered handlers for processing
  * a web request, providing convenient mapping and exception handling facilities.
@@ -489,6 +478,8 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/**
 	 * This implementation calls {@link #initStrategies}.
+	 *
+	 * 执行相关的初始化方法
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {
@@ -500,11 +491,18 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		// 初始化多部件上传相关配置(若存在的话)
 		initMultipartResolver(context);
+		// 初始化本地语言配置
 		initLocaleResolver(context);
+		// 初始化主题解析器配置
 		initThemeResolver(context);
+
+		// 初始化处理器映射相关配置(主要了解 RequestMappingHandlerMapping)
 		initHandlerMappings(context);
+		// 初始化注处理器适配器配置(主要了解 RequestMappingHandlerAdapter)
 		initHandlerAdapters(context);
+
 		initHandlerExceptionResolvers(context);
 		initRequestToViewNameTranslator(context);
 		initViewResolvers(context);
@@ -519,6 +517,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	private void initMultipartResolver(ApplicationContext context) {
 		try {
 			this.multipartResolver = context.getBean(MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
+			// 若加载到了对应的多部件相关的处理,则将对应的多部件解析器赋值
 			if (logger.isTraceEnabled()) {
 				logger.trace("Detected " + this.multipartResolver);
 			}
@@ -593,10 +592,13 @@ public class DispatcherServlet extends FrameworkServlet {
 	private void initHandlerMappings(ApplicationContext context) {
 		this.handlerMappings = null;
 
+		// 是否要探测所有的处理器映射,
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
+			// 从容器中获取所有的匹配到 HandlerMapping 的实例Bean
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
+			// 若获取到的映射不为空,则将其加入到所有的映射器中,并且将其排序
 			if (!matchingBeans.isEmpty()) {
 				this.handlerMappings = new ArrayList<>(matchingBeans.values());
 				// We keep HandlerMappings in sorted order.
@@ -605,6 +607,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 		else {
 			try {
+				// 否则则获取一个指定的bean
 				HandlerMapping hm = context.getBean(HANDLER_MAPPING_BEAN_NAME, HandlerMapping.class);
 				this.handlerMappings = Collections.singletonList(hm);
 			}
@@ -615,6 +618,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Ensure we have at least one HandlerMapping, by registering
 		// a default HandlerMapping if no other mappings are found.
+		// 若都未获取到,则使用 DispatcherServlet.properties 中的默认策略
 		if (this.handlerMappings == null) {
 			this.handlerMappings = getDefaultStrategies(context, HandlerMapping.class);
 			if (logger.isTraceEnabled()) {
@@ -940,6 +944,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			// 所有请求的入口,在此方法进行接口数据分发
 			doDispatch(request, response);
 		}
 		finally {
@@ -1009,34 +1014,46 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// 校验是否为多部件请求参数
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// 根据请求的地址,获取真正的处理器执行链
 				mappedHandler = getHandler(processedRequest);
+				// 未找到指定的处理器,则返回404
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
+				// 此处获取执行器链对应的适配器,用于执行对应的执行器中的逻辑
+				// Spring 通过 处理器适配器来指定对应处理器的逻辑,对于开发者而言,此种方式
+				// 可以避免开发者编写对应的处理器,提供默认使用的处理器,然后由适配器来执行,用户
+				// 也可以通过编写新的处理器和适配器来进行扩展映射器和适配器,
+				// 开发者不需要感知到对应的处理器和适配器的存在,提供了横向扩展
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
 				if (isGet || "HEAD".equals(method)) {
+					// 校验当前处理器上次修改的时间,若未进行修改,请是GET请求,直接返回
 					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
 					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
 						return;
 					}
 				}
 
+				// 拦截器三步骤的第一个步骤,应用所有拦截器的 preHandle 方法,从第一个拦截器依次到最后一个拦截器
+				// 只要有一个拦截器的校验不通过,则直接返回.
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// Actually invoke the handler.
+				// 此处就是适配器生效的步骤,由适配器去决定方法应该如何被调用
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1044,6 +1061,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+				// 处理器执行完成,调用所有的拦截器执行 postHandler 方法
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1054,12 +1072,15 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			// 正常执行完成的逻辑,内部包含了调用所有拦截器完成时的 afterCompletion 方法
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
+			// 最外部异常,通知拦截器处理对应的
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
+			// 出现了相关异常
 			triggerAfterCompletion(processedRequest, response, mappedHandler,
 					new NestedServletException("Handler processing failed", err));
 		}
@@ -1230,7 +1251,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	@Nullable
 	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
 		if (this.handlerMappings != null) {
+			// 遍历所有的 handlerMappings,一般默认使用的 RequestMappingHandlerMapping 类.
 			for (HandlerMapping mapping : this.handlerMappings) {
+				// 遍历所有的 handlerMapping, 得到对应的执行器链
 				HandlerExecutionChain handler = mapping.getHandler(request);
 				if (handler != null) {
 					return handler;

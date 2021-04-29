@@ -54,8 +54,8 @@ import java.util.Set;
  * @author Stephane Nicoll
  * @since 2.5
  * @see AutowireCandidateQualifier
- * @see Qualifier
- * @see Value
+ * @see Qualifier 可用于解析该注解
+ * @see Value 可用于解析该注解
  */
 public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwareAutowireCandidateResolver {
 
@@ -332,7 +332,9 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	 */
 	@Override
 	public boolean hasQualifier(DependencyDescriptor descriptor) {
+		// 获取当前描述的所有注解
 		for (Annotation ann : descriptor.getAnnotations()) {
+			// 判断是否存在 Qualifier 注解
 			if (isQualifier(ann.annotationType())) {
 				return true;
 			}
@@ -375,6 +377,8 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	}
 
 	/**
+	 * 提取注解上对应的 value 值,若为@Value注解,则提取对应 ${表达式} 或者 value值
+	 *
 	 * Extract the value attribute from the given annotation.
 	 * @since 4.3
 	 */

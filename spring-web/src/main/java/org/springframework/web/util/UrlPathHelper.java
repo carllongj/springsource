@@ -16,22 +16,20 @@
 
 package org.springframework.web.util;
 
-import java.net.URLDecoder;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.URLDecoder;
+import java.nio.charset.UnsupportedCharsetException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Helper class for URL path matching. Provides support for URL paths in
@@ -183,8 +181,10 @@ public class UrlPathHelper {
 	 * @see #getPathWithinApplication
 	 */
 	public String getLookupPathForRequest(HttpServletRequest request) {
+		// 获取到相对的地址
 		String pathWithinApp = getPathWithinApplication(request);
 		// Always use full path within current servlet context?
+		// 判断是否设置了总使用全路径,即通过 RequestMapping 中的url总能找到对应的bean
 		if (this.alwaysUseFullPath) {
 			return pathWithinApp;
 		}
@@ -209,12 +209,14 @@ public class UrlPathHelper {
 	 * @see org.springframework.web.servlet.HandlerMapping#LOOKUP_PATH
 	 */
 	public String getLookupPathForRequest(HttpServletRequest request, @Nullable String lookupPathAttributeName) {
+		// 若当前传入的 lookupPathAttributeName 不为null,则从request中的属性获取该值
 		if (lookupPathAttributeName != null) {
 			String result = (String) request.getAttribute(lookupPathAttributeName);
 			if (result != null) {
 				return result;
 			}
 		}
+		//
 		return getLookupPathForRequest(request);
 	}
 
@@ -247,7 +249,9 @@ public class UrlPathHelper {
 	 * @see #getLookupPathForRequest
 	 */
 	protected String getPathWithinServletMapping(HttpServletRequest request, String pathWithinApp) {
+		// 获取当前servlet对应的名称,一个JavaWeb应用本身使用servlet对应的路径为 /contextPath/servletPath
 		String servletPath = getServletPath(request);
+		// 替换所有的 双斜杠(//) 为单斜杠(/)
 		String sanitizedPathWithinApp = getSanitizedPath(pathWithinApp);
 		String path;
 
@@ -287,6 +291,8 @@ public class UrlPathHelper {
 	}
 
 	/**
+	 * 获取在当前应用中,该请求对应的地址,即去掉 contextPath 后请求中的相对地址
+	 *
 	 * Return the path within the web application for the given request.
 	 * <p>Detects include request URL if called within a RequestDispatcher include.
 	 * @param request current HTTP request
@@ -294,11 +300,15 @@ public class UrlPathHelper {
 	 * @see #getLookupPathForRequest
 	 */
 	public String getPathWithinApplication(HttpServletRequest request) {
+		// 获取上下文地址
 		String contextPath = getContextPath(request);
+		// 获取 RequestURI
 		String requestUri = getRequestUri(request);
+		// 获取当前的相对context的URI地址
 		String path = getRemainingPath(requestUri, contextPath, true);
 		if (path != null) {
 			// Normal case: URI contains context path.
+			// 对 / 路径进行非空处理
 			return (StringUtils.hasText(path) ? path : "/");
 		}
 		else {

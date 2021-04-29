@@ -231,10 +231,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			// Check if bean definition exists in this factory.
-			// 若是存在父容器,则优先从父容器中获取.
+			// 若是存在父容器,并且当前BeanDefinition 中不存在该bean名称的定义,则尝试从父容器中获取.
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
+				// 尝试从父容器中取得
 				String nameToLookup = originalBeanName(name);
 				if (parentBeanFactory instanceof AbstractBeanFactory) {
 					return ((AbstractBeanFactory) parentBeanFactory).doGetBean(

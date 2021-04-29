@@ -16,12 +16,6 @@
 
 package org.springframework.web.servlet.mvc.method.annotation;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.core.Conventions;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -45,7 +39,14 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
+
 /**
+ * 用来解析RequestBody 注解和 ResponseBody 注解的解析器
+ *
  * Resolves method arguments annotated with {@code @RequestBody} and handles return
  * values from methods annotated with {@code @ResponseBody} by reading and writing
  * to the body of the request or response with an {@link HttpMessageConverter}.

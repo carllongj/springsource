@@ -382,6 +382,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeansException {
 
 		Object result = existingBean;
+		// 执行初始化的后置处理,若有AOP代理,则在此步骤完成(若代理对象提前暴露,则会直接获取缓存中已经存在的对象)
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
@@ -512,8 +513,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd.isSingleton()) {
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
-		// 若当前的实例包装为null,则进行创建对应的Bean.
+		// 若当前的实例包装为null,则进行创建对应的Bean,创建当前的bean的实例
 		if (instanceWrapper == null) {
+			// 创建实例
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
 		// 真实的实例
@@ -546,12 +548,22 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
 		// 若当前设置早期缓存用于解决循环依赖(包括AOP的处理),即提前暴露代理对象
+		/*
+			三级缓存的原因:
+				1. 当前的原始bean已经创建完毕,即instanceWrapper中已经包含了原始实例.
+				2. 其它实例若要依赖当前bean,则一定是注入代理对象而不是原始对象.
+				3. 若当前的bean被代理后,若不使用三级缓存,则代理对象必须要现在就创建,三级缓存可以延迟到需要的时候在进行创建.
+					3.1 延迟是从加载到该bean时创建代理对象推迟到该bean对象需要被注入时创建(但是必须要出现循环依赖才会被提前)
+					3.2 因为未出现循环依赖时,在bean的后置操作将构造对应的代理对象,将其放入到一级缓存中,该bean将不会出现在二级缓存中.
+				4. getEarlyBeanReference 和 AbstractAutoProxy中的后置操作基本一致,都是创建对应的代理对象.
+					也就是出现AOP循环依赖时,通过三级缓存来提前对应的代理对象创建.而不需要让所有bean的代理创建提前.
+		 */
 		if (earlySingletonExposure) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
-			// 设置当前BeanName对应的Bean依赖,将对应的Bean,添加到三级缓存中,为了提前暴露代理对象
+			// 设置当前BeanName对应的Bean依赖,将对应的Bean,添加到三级缓存中,为了提前暴露代理对象或者原始对象
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -577,7 +589,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (earlySingletonExposure) {
 			// 尝试获取对应的单例bean,并且通过singleton方法不进行创建对象了
 			Object earlySingletonReference = getSingleton(beanName, false);
-			// 当前存在早期暴露的缓存
+			// 当前存在早期暴露的缓存,则获取到已经创建好的AOP代理bean
 			if (earlySingletonReference != null) {
 				// 两个bean引用相同,说明未经过 Spring AOP 处理
 				if (exposedObject == bean) {
@@ -1351,7 +1363,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@SuppressWarnings("deprecation")  // for postProcessPropertyValues
 	protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable BeanWrapper bw) {
 		if (bw == null) {
-			// 校验是否配置了属性,但是又不存在 实例
+			// 校验是否配置了属性,但是又不存在 实例,抛出异常
 			if (mbd.hasPropertyValues()) {
 				throw new BeanCreationException(
 						mbd.getResourceDescription(), beanName, "Cannot apply property values to null instance");
@@ -1788,7 +1800,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					beanName, "Invocation of init method failed", ex);
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
-			// 执行 初始化完成的后置操作 即调用所有的 afterInitialization
+			// 执行 初始化完成的后置操作 即调用所有的 afterInitialization ,非循环依赖的AOP代理对象即在此步骤生成
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 

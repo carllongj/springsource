@@ -16,15 +16,6 @@
 
 package org.springframework.web.servlet.mvc.method.annotation;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.concurrent.Callable;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpHeaders;
@@ -43,6 +34,14 @@ import org.springframework.web.method.support.InvocableHandlerMethod;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.View;
 import org.springframework.web.util.NestedServletException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.concurrent.Callable;
 
 /**
  * Extends {@link InvocableHandlerMethod} with the ability to handle return
@@ -102,6 +101,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		// 执行逻辑方法的调用,此处调用的就是@RequestMapping所定义的方法
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
 		setResponseStatus(webRequest);
 
@@ -120,6 +120,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 		mavContainer.setRequestHandled(false);
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
 		try {
+			// 遍历所有的 返回值处理器,将返回的内容封装到对应的 mavContainer 中.
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
 		}

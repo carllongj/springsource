@@ -19,6 +19,8 @@ package org.springframework.transaction;
 import org.springframework.lang.Nullable;
 
 /**
+ * Spring 中对事务处理的定义,所有的定义在当前类中
+ *
  * Interface that defines Spring-compliant transaction properties.
  * Based on the propagation behavior definitions analogous to EJB CMT attributes.
  *
@@ -44,6 +46,8 @@ import org.springframework.lang.Nullable;
 public interface TransactionDefinition {
 
 	/**
+	 *  支持当前事务,若不存在则创建一个事务
+	 *
 	 * Support a current transaction; create a new one if none exists.
 	 * Analogous to the EJB transaction attribute of the same name.
 	 * <p>This is typically the default setting of a transaction definition,
@@ -52,6 +56,8 @@ public interface TransactionDefinition {
 	int PROPAGATION_REQUIRED = 0;
 
 	/**
+	 * 支持当前事务,若不存在,则以非事务运行
+	 *
 	 * Support a current transaction; execute non-transactionally if none exists.
 	 * Analogous to the EJB transaction attribute of the same name.
 	 * <p><b>NOTE:</b> For transaction managers with transaction synchronization,
@@ -73,6 +79,8 @@ public interface TransactionDefinition {
 	int PROPAGATION_SUPPORTS = 1;
 
 	/**
+	 * 支持当前事务,若当前没有事务,则抛出异常
+	 *
 	 * Support a current transaction; throw an exception if no current transaction
 	 * exists. Analogous to the EJB transaction attribute of the same name.
 	 * <p>Note that transaction synchronization within a {@code PROPAGATION_MANDATORY}
@@ -81,6 +89,8 @@ public interface TransactionDefinition {
 	int PROPAGATION_MANDATORY = 2;
 
 	/**
+	 * 创建一个事务,若当前存在事务,则挂起当前事务
+	 *
 	 * Create a new transaction, suspending the current transaction if one exists.
 	 * Analogous to the EJB transaction attribute of the same name.
 	 * <p><b>NOTE:</b> Actual transaction suspension will not work out-of-the-box
@@ -96,6 +106,8 @@ public interface TransactionDefinition {
 	int PROPAGATION_REQUIRES_NEW = 3;
 
 	/**
+	 * 不支持当前事务,总是以非事务执行,若当前存在事务,则挂起事务
+	 *
 	 * Do not support a current transaction; rather always execute non-transactionally.
 	 * Analogous to the EJB transaction attribute of the same name.
 	 * <p><b>NOTE:</b> Actual transaction suspension will not work out-of-the-box
@@ -111,6 +123,7 @@ public interface TransactionDefinition {
 	int PROPAGATION_NOT_SUPPORTED = 4;
 
 	/**
+	 * 不支持当前事务,当前存在事务则抛出异常
 	 * Do not support a current transaction; throw an exception if a current transaction
 	 * exists. Analogous to the EJB transaction attribute of the same name.
 	 * <p>Note that transaction synchronization is <i>not</i> available within a
@@ -119,6 +132,8 @@ public interface TransactionDefinition {
 	int PROPAGATION_NEVER = 5;
 
 	/**
+	 * 若当前事务存在,则进行嵌套事务,如果没有事务,则执行与 PROPAGATION_NOT_REQUIRE 同效果
+	 *
 	 * Execute within a nested transaction if a current transaction exists,
 	 * behave like {@link #PROPAGATION_REQUIRED} otherwise. There is no
 	 * analogous feature in EJB.
@@ -133,13 +148,22 @@ public interface TransactionDefinition {
 
 
 	/**
+	 * 适用于数据库默认设置的事务隔离级别
+	 *
 	 * Use the default isolation level of the underlying datastore.
 	 * All other levels correspond to the JDBC isolation levels.
 	 * @see java.sql.Connection
 	 */
 	int ISOLATION_DEFAULT = -1;
 
+	/*
+	 * 脏读,读取到其它事务还为提交的数据
+	 * 不可重读,
+	 */
+
 	/**
+	 * 读已提交,将会导致 脏读,不可重复读和幻读.
+	 *
 	 * Indicates that dirty reads, non-repeatable reads and phantom reads
 	 * can occur.
 	 * <p>This level allows a row changed by one transaction to be read by another
@@ -151,6 +175,8 @@ public interface TransactionDefinition {
 	int ISOLATION_READ_UNCOMMITTED = 1;  // same as java.sql.Connection.TRANSACTION_READ_UNCOMMITTED;
 
 	/**
+	 * 读已提交,避免了脏读,但会导致 不可重复读和幻读 .
+	 *
 	 * Indicates that dirty reads are prevented; non-repeatable reads and
 	 * phantom reads can occur.
 	 * <p>This level only prohibits a transaction from reading a row
@@ -160,6 +186,8 @@ public interface TransactionDefinition {
 	int ISOLATION_READ_COMMITTED = 2;  // same as java.sql.Connection.TRANSACTION_READ_COMMITTED;
 
 	/**
+	 * 可重复读,避免了脏读和不可重复读,幻读可能会发生
+	 *
 	 * Indicates that dirty reads and non-repeatable reads are prevented;
 	 * phantom reads can occur.
 	 * <p>This level prohibits a transaction from reading a row with uncommitted changes
@@ -171,6 +199,8 @@ public interface TransactionDefinition {
 	int ISOLATION_REPEATABLE_READ = 4;  // same as java.sql.Connection.TRANSACTION_REPEATABLE_READ;
 
 	/**
+	 * 串行化度,避免了 脏读,可重复读,和幻读
+	 *
 	 * Indicates that dirty reads, non-repeatable reads and phantom reads
 	 * are prevented.
 	 * <p>This level includes the prohibitions in {@link #ISOLATION_REPEATABLE_READ}
@@ -192,6 +222,8 @@ public interface TransactionDefinition {
 
 
 	/**
+	 * 返回当前的默认传播特性
+	 *
 	 * Return the propagation behavior.
 	 * <p>Must return one of the {@code PROPAGATION_XXX} constants
 	 * defined on {@link TransactionDefinition this interface}.
@@ -205,6 +237,8 @@ public interface TransactionDefinition {
 	}
 
 	/**
+	 * 返回当前设置的隔离级别
+	 *
 	 * Return the isolation level.
 	 * <p>Must return one of the {@code ISOLATION_XXX} constants defined on
 	 * {@link TransactionDefinition this interface}. Those constants are designed
@@ -227,6 +261,8 @@ public interface TransactionDefinition {
 	}
 
 	/**
+	 * 获取超时时间
+	 *
 	 * Return the transaction timeout.
 	 * <p>Must return a number of seconds, or {@link #TIMEOUT_DEFAULT}.
 	 * <p>Exclusively designed for use with {@link #PROPAGATION_REQUIRED} or
@@ -242,6 +278,8 @@ public interface TransactionDefinition {
 	}
 
 	/**
+	 * 是否为只读事务
+	 *
 	 * Return whether to optimize as a read-only transaction.
 	 * <p>The read-only flag applies to any transaction context, whether backed
 	 * by an actual resource transaction ({@link #PROPAGATION_REQUIRED}/

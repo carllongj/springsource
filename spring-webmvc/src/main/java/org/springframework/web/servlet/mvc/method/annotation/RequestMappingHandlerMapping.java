@@ -16,18 +16,6 @@
 
 package org.springframework.web.servlet.mvc.method.annotation;
 
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.MergedAnnotation;
@@ -53,7 +41,18 @@ import org.springframework.web.servlet.mvc.condition.RequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
 
+import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.*;
+import java.util.function.Predicate;
+
 /**
+ * 注解类型的映射扫描与bean名称相关的处理器扫描不一样,其它的方式则需要通过请求到时通过url在获取指定的bean
+ * 注解扫描需要扫描Bean中所有的Class的元数据(并不需要创建对应的实例).
+ * 并且判断所有的Class上是否标识了@Controller或者 RequestMapping.
+ *
  * Creates {@link RequestMappingInfo} instances from type and method-level
  * {@link RequestMapping @RequestMapping} annotations in
  * {@link Controller @Controller} classes.
@@ -231,6 +230,8 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 
 
 	/**
+	 * 判断指定类型是上否存在 Controller 和 RequestMapping注解
+	 *
 	 * {@inheritDoc}
 	 * <p>Expects a handler to have either a type-level @{@link Controller}
 	 * annotation or a type-level @{@link RequestMapping} annotation.

@@ -510,6 +510,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// 由于可以获取所有的BeanDefinition
 				// 通过BeanDefinition 可以知道每一个Bean是否实现了BeanFactoryProcessor接口
 				// BeanFactory 提供了通过类型来获取所有的BeanDefinition对象.
+				// 读取配置 Properties 也是通过注册的BeanFactoryPostProcessor 来进行处理的,具体的类为 PropertySourcesPlaceholderConfigurer
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
@@ -897,6 +898,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		getLifecycleProcessor().onRefresh();
 
 		// Publish the final event.
+		// 发布所有的bean都已经创建完成的事件
 		publishEvent(new ContextRefreshedEvent(this));
 
 		// Participate in LiveBeansView MBean, if active.
