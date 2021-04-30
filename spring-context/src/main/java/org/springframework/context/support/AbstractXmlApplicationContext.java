@@ -16,8 +16,6 @@
 
 package org.springframework.context.support;
 
-import java.io.IOException;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.ResourceEntityResolver;
@@ -25,6 +23,8 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
+
+import java.io.IOException;
 
 /**
  * Convenient base class for {@link org.springframework.context.ApplicationContext}
@@ -91,7 +91,10 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
+		// 钩子函数
 		initBeanDefinitionReader(beanDefinitionReader);
+
+		// 进行加载所有的Bean信息
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
@@ -120,12 +123,16 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @see #getResourcePatternResolver
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException {
+		// 获取到所有的配置文件资源
 		Resource[] configResources = getConfigResources();
 		if (configResources != null) {
+			// 加载所有的配置文件信息
 			reader.loadBeanDefinitions(configResources);
 		}
+		// 获取配置location,
 		String[] configLocations = getConfigLocations();
 		if (configLocations != null) {
+			// 加载所有的配置信息
 			reader.loadBeanDefinitions(configLocations);
 		}
 	}

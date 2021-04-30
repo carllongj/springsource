@@ -27,6 +27,14 @@ public class ApplicationContextBeanDebugTest {
 	}
 
 	@Test
+	public void testConfigurationBean() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("classpath:/debug/applicationContext.xml");
+		System.out.println(context.getBean(ConfigurationBean.class).getClass());
+		// 若在 ConfigurationBean 上添加 @Configuration 则是相同的对象,若使用@Component则表示不进行代理
+		System.out.println(context.getBean(ComponentBean.class) == context.getBean(ComponentBean.class));
+	}
+
+	@Test
 	public void testAnnotationApplicationContext() {
 		ApplicationContext context = new AnnotationConfigApplicationContext("debug.bean");
 		Car car = context.getBean(Car.class);
