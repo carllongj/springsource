@@ -33,6 +33,8 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.ClassUtils;
 
 /**
+ * 解析 <tx:annotation-driven/>标签infrastructure
+ *
  * {@link org.springframework.beans.factory.xml.BeanDefinitionParser
  * BeanDefinitionParser} implementation that allows users to easily configure
  * all the infrastructure beans required to enable annotation-driven transaction
@@ -71,6 +73,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		}
 		else {
 			// mode="proxy"
+			// 事务代理动态代理注册对应的bean信息
 			AopAutoProxyConfigurer.configureAutoProxyCreator(element, parserContext);
 		}
 		return null;
@@ -119,6 +122,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 	private static class AopAutoProxyConfigurer {
 
 		public static void configureAutoProxyCreator(Element element, ParserContext parserContext) {
+			// 注册 自动代理
 			AopNamespaceUtils.registerAutoProxyCreatorIfNecessary(parserContext, element);
 
 			String txAdvisorBeanName = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME;

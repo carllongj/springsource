@@ -35,4 +35,5 @@
 		<property name="age" value="32"/>
 	</bean>
 	<bean class="debug.processor.CarPropertyBeanFactoryPostProcessor"/>
+	<!-- <bean class="debug.bean.ConfigurationBean"/> -->
 </beans>

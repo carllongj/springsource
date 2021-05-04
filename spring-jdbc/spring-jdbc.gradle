@@ -16,4 +16,7 @@ dependencies {
 	optional("org.jetbrains.kotlin:kotlin-stdlib")
 	testCompile(testFixtures(project(":spring-beans")))
 	testCompile(testFixtures(project(":spring-core")))
+
+	// 用于测试时数据库连接,不属于Spring源码中的内容
+    runtime("mysql:mysql-connector-java:5.1.49")
 }

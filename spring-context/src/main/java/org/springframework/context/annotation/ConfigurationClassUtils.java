@@ -66,6 +66,7 @@ abstract class ConfigurationClassUtils {
 	private static final Set<String> candidateIndicators = new HashSet<>(8);
 
 	static {
+		// 4中注解标识当前类可以被识别,视为一个
 		candidateIndicators.add(Component.class.getName());
 		candidateIndicators.add(ComponentScan.class.getName());
 		candidateIndicators.add(Import.class.getName());
@@ -121,10 +122,17 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// 获取 Configuration 的注解配置,如果获取到了Configuration类,那么此处将返回对应的配置中的所有设置,如果没有则返回null
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+		// 此处用以判断当前 BeanDefinition 被 Configuration 注解标识,且 proxyBeanMethods 属性不为false,则对类进行完全代理.
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
+			// 设置完全代理的属性,后续会检查该 Attribute ,用来判断是否创建完全代理对象
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		// 1. 只要有Configuration注解
+		// 2. 满足 Component ComponentScan Import ImportSource注解
+		// 3. 满足 类中存在使用 @Bean 的标识的方法.
+		// 满足任意一个条件,则表示该类为配置类.
 		else if (config != null || isConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
@@ -150,11 +158,13 @@ abstract class ConfigurationClassUtils {
 	 */
 	public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
 		// Do not consider an interface or an annotation...
+		// 当前定义如果为借口,则直接返回
 		if (metadata.isInterface()) {
 			return false;
 		}
 
 		// Any of the typical annotations found?
+		// 判断当前类上是否存在 Component ComponentScan Import ImportSource 注解,若存在这四个注解,则表示是配置类
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;
@@ -162,6 +172,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Finally, let's look for @Bean methods...
+		// 若不存在 对应的注解,尝试查找是否存在Bean注解的方法,若存在,表示还是配置类
 		try {
 			return metadata.hasAnnotatedMethods(Bean.class.getName());
 		}

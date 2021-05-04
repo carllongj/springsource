@@ -158,6 +158,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 
 		// 处理所有的配置文件
 		processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
+
 		// 记录已经处理完成的配置项
 		this.appliedPropertySources = this.propertySources;
 	}
