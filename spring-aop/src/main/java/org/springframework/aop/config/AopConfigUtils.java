@@ -86,6 +86,7 @@ public abstract class AopConfigUtils {
 	public static BeanDefinition registerAspectJAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
+		// 注册 AspectJAwareAdvisorAutoProxyCreator
 		return registerOrEscalateApcAsRequired(AspectJAwareAdvisorAutoProxyCreator.class, registry, source);
 	}
 

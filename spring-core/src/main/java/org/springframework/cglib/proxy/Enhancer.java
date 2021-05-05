@@ -16,21 +16,6 @@
 
 package org.springframework.cglib.proxy;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.ProtectionDomain;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.asm.ClassVisitor;
 import org.springframework.asm.Label;
 import org.springframework.asm.Type;
@@ -56,6 +41,22 @@ import org.springframework.cglib.core.Transformer;
 import org.springframework.cglib.core.TypeUtils;
 import org.springframework.cglib.core.VisibilityPredicate;
 import org.springframework.cglib.core.WeakCacheKey;
+import org.springframework.core.BridgeMethodResolver;
+
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Generates dynamic subclasses to enable method interception. This
@@ -407,6 +408,8 @@ public class Enhancer extends AbstractClassGenerator {
 	}
 
 	/**
+	 * 生成一个代理对象
+	 *
 	 * Generate a new class if necessary and return it without creating a new instance.
 	 * This ignores any callbacks that have been set.
 	 * To create a new instance you will have to use reflection, and methods
@@ -560,6 +563,7 @@ public class Enhancer extends AbstractClassGenerator {
 	}
 
 	private Object createHelper() {
+		// 预检
 		preValidate();
 		Object key = KEY_FACTORY.newInstance((superclass != null) ? superclass.getName() : null,
 				ReflectUtils.getNames(interfaces),
@@ -569,6 +573,7 @@ public class Enhancer extends AbstractClassGenerator {
 				interceptDuringConstruction,
 				serialVersionUID);
 		this.currentKey = key;
+		// 进行创建 代理对象
 		Object result = super.create(key);
 		return result;
 	}

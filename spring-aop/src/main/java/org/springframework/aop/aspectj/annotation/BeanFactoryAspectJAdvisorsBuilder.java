@@ -47,6 +47,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	@Nullable
 	private volatile List<String> aspectBeanNames;
 
+	// 增强的缓存,一个Bean的名称中会包含多个增强的定义
 	private final Map<String, List<Advisor>> advisorsCache = new ConcurrentHashMap<>();
 
 	private final Map<String, MetadataAwareAspectInstanceFactory> aspectFactoryCache = new ConcurrentHashMap<>();
@@ -74,6 +75,9 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 
 
 	/**
+	 * 查找当前所有的Aspect增强,该方法若第一次调用,则会进行一次全局的搜查,将所有的aspectBeanname存储起来
+	 * 后续的查找只需要检索所有的 aspectBeanName即可
+	 *
 	 * Look for AspectJ-annotated aspect beans in the current bean factory,
 	 * and return to a list of Spring AOP Advisors representing them.
 	 * <p>Creates a Spring Advisor for each AspectJ advice method.
@@ -83,6 +87,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	public List<Advisor> buildAspectJAdvisors() {
 		List<String> aspectNames = this.aspectBeanNames;
 
+		// 判断当前的aspectName如果为null,表示还未进行搜索,则进行一次全搜索
 		if (aspectNames == null) {
 			synchronized (this) {
 				aspectNames = this.aspectBeanNames;
@@ -101,12 +106,14 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						if (beanType == null) {
 							continue;
 						}
+						// 判断当前是否为 aspect 配置类
 						if (this.advisorFactory.isAspect(beanType)) {
 							aspectNames.add(beanName);
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								// 通过 MetadataAwareAspectInstanceFactory 获取当当前 Class 中的所有增强方法
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
 									this.advisorsCache.put(beanName, classAdvisors);
@@ -114,6 +121,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 								else {
 									this.aspectFactoryCache.put(beanName, factory);
 								}
+								// 添加所有的增强
 								advisors.addAll(classAdvisors);
 							}
 							else {
@@ -129,6 +137,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 							}
 						}
 					}
+					// 此时集合将不会为null
 					this.aspectBeanNames = aspectNames;
 					return advisors;
 				}
@@ -140,11 +149,14 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		}
 		List<Advisor> advisors = new ArrayList<>();
 		for (String aspectName : aspectNames) {
+			// 查找缓存中是否存在已经被加载过的增强
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
+			// 如当前类已经被缓存了,则加入
 			if (cachedAdvisors != null) {
 				advisors.addAll(cachedAdvisors);
 			}
 			else {
+				// 否则执行解析该bean,获取获取其所有的增强
 				MetadataAwareAspectInstanceFactory factory = this.aspectFactoryCache.get(aspectName);
 				advisors.addAll(this.advisorFactory.getAdvisors(factory));
 			}

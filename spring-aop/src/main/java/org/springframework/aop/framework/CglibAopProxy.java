@@ -16,22 +16,10 @@
 
 package org.springframework.aop.framework;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.AopInvocationException;
 import org.springframework.aop.PointcutAdvisor;
@@ -55,6 +43,17 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
+
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * CGLIB-based {@link AopProxy} implementation for the Spring AOP framework.
@@ -155,6 +154,12 @@ class CglibAopProxy implements AopProxy, Serializable {
 		return getProxy(null);
 	}
 
+	/**
+	 * 执行创建代理对象,
+	 * @param classLoader the class loader to create the proxy with
+	 * (or {@code null} for the low-level proxy facility's default)
+	 * @return
+	 */
 	@Override
 	public Object getProxy(@Nullable ClassLoader classLoader) {
 		if (logger.isTraceEnabled()) {
@@ -202,6 +207,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			enhancer.setCallbackTypes(types);
 
 			// Generate the proxy class and create a proxy instance.
+			// 根据 enhancer 和callbacks 数据来创建对应的代理对象
 			return createProxyClassAndInstance(enhancer, callbacks);
 		}
 		catch (CodeGenerationException | IllegalArgumentException ex) {
@@ -215,9 +221,17 @@ class CglibAopProxy implements AopProxy, Serializable {
 		}
 	}
 
+	/**
+	 * 创建代理的 Class 对象和 代理的实例
+	 * @param enhancer 增强器
+	 * @param callbacks 回调
+	 * @return 返回代理对象
+	 */
 	protected Object createProxyClassAndInstance(Enhancer enhancer, Callback[] callbacks) {
 		enhancer.setInterceptDuringConstruction(false);
 		enhancer.setCallbacks(callbacks);
+
+		// 创建代理对象
 		return (this.constructorArgs != null && this.constructorArgTypes != null ?
 				enhancer.create(this.constructorArgTypes, this.constructorArgs) :
 				enhancer.create());

@@ -117,8 +117,10 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 	@Override
 	public List<Advisor> getAdvisors(MetadataAwareAspectInstanceFactory aspectInstanceFactory) {
+		// 获取到指定的Class类
 		Class<?> aspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
 		String aspectName = aspectInstanceFactory.getAspectMetadata().getAspectName();
+		// 校验该类是否存在 Aspect 注解
 		validate(aspectClass);
 
 		// We need to wrap the MetadataAwareAspectInstanceFactory with a decorator
@@ -127,6 +129,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 				new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
 
 		List<Advisor> advisors = new ArrayList<>();
+		//获取该类的所有的方法
 		for (Method method : getAdvisorMethods(aspectClass)) {
 			// Prior to Spring Framework 5.2.7, advisors.size() was supplied as the declarationOrderInAspect
 			// to getAdvisor(...) to represent the "current position" in the declared methods list.
@@ -136,6 +139,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			// discovered via reflection in order to support reliable advice ordering across JVM launches.
 			// Specifically, a value of 0 aligns with the default value used in
 			// AspectJPrecedenceComparator.getAspectDeclarationOrder(Advisor).
+			// 转换该类是否为一个增强类,若为增强类,则返回不为null
 			Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspectName);
 			if (advisor != null) {
 				advisors.add(advisor);
@@ -204,18 +208,23 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 		validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
 
+		// 从当前类中查找是否存在 Aspectj 切面所需要的注解,包含 Pointcut,After,Around,Before,AfterThrowing,AfterReturning
 		AspectJExpressionPointcut expressionPointcut = getPointcut(
 				candidateAdviceMethod, aspectInstanceFactory.getAspectMetadata().getAspectClass());
+		// 当前类中不存在Pointcut,则不添加该增强
 		if (expressionPointcut == null) {
 			return null;
 		}
 
+		// 创建对应的增强实现元数据,所有的增强都是通过元数据来进行描述,
 		return new InstantiationModelAwarePointcutAdvisorImpl(expressionPointcut, candidateAdviceMethod,
 				this, aspectInstanceFactory, declarationOrderInAspect, aspectName);
 	}
 
 	@Nullable
 	private AspectJExpressionPointcut getPointcut(Method candidateAdviceMethod, Class<?> candidateAspectClass) {
+
+		// 查找是否存在 指定的 aspectj 注解
 		AspectJAnnotation<?> aspectJAnnotation =
 				AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
 		if (aspectJAnnotation == null) {
@@ -224,6 +233,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 		AspectJExpressionPointcut ajexp =
 				new AspectJExpressionPointcut(candidateAspectClass, new String[0], new Class<?>[0]);
+		// 设置当前设置的 pointcut 的值
 		ajexp.setExpression(aspectJAnnotation.getPointcutExpression());
 		if (this.beanFactory != null) {
 			ajexp.setBeanFactory(this.beanFactory);

@@ -16,16 +16,19 @@
 
 package org.springframework.cglib.core;
 
+import org.springframework.asm.ClassReader;
+import org.springframework.cglib.core.internal.Function;
+import org.springframework.cglib.core.internal.LoadingCache;
+
 import java.lang.ref.WeakReference;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.ProtectionDomain;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-
-import org.springframework.asm.ClassReader;
-import org.springframework.cglib.core.internal.Function;
-import org.springframework.cglib.core.internal.LoadingCache;
 
 /**
  * Abstract class for all code-generating CGLIB utilities.
@@ -127,10 +130,13 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 		}
 
 		public Object get(AbstractClassGenerator gen, boolean useCache) {
+			// 若不使用缓存,则创建新的对象
 			if (!useCache) {
+				// 创建代理实例
 				return gen.generate(ClassLoaderData.this);
 			}
 			else {
+				// 从已经生成的进行获取
 				Object cachedValue = generatedClasses.get(gen);
 				return gen.unwrapCachedValue(cachedValue);
 			}
@@ -298,11 +304,18 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 		return null;
 	}
 
+	/**
+	 * 生成代理的class,创建代理的对象
+	 * @param key 指定的key
+	 * @return 返回代理对象
+	 */
 	protected Object create(Object key) {
 		try {
 			ClassLoader loader = getClassLoader();
 			Map<ClassLoader, ClassLoaderData> cache = CACHE;
+			// 获取ClassLoader 数据
 			ClassLoaderData data = cache.get(loader);
+			// 若为null,则进行创建
 			if (data == null) {
 				synchronized (AbstractClassGenerator.class) {
 					cache = CACHE;
@@ -316,6 +329,7 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 				}
 			}
 			this.key = key;
+			// 获取对应的 实例
 			Object obj = data.get(this, getUseCache());
 			if (obj instanceof Class) {
 				return firstInstance((Class) obj);
@@ -330,6 +344,11 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 		}
 	}
 
+	/**
+	 * 生成对应的 class 结构
+	 * @param data 加载器参数
+	 * @return 返回class结构
+	 */
 	protected Class generate(ClassLoaderData data) {
 		Class gen;
 		Object save = CURRENT.get();
@@ -355,7 +374,9 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 					// ignore
 				}
 			}
+			// 生成对应的 class结构数据
 			byte[] b = strategy.generate(this);
+			Files.write(Paths.get("D:\\","a.class"),b, StandardOpenOption.CREATE,StandardOpenOption.WRITE);
 			String className = ClassNameReader.getClassName(new ClassReader(b));
 			ProtectionDomain protectionDomain = getProtectionDomain();
 			synchronized (classLoader) { // just in case

@@ -44,6 +44,8 @@ package org.springframework.aop.framework;
 public interface AopProxyFactory {
 
 	/**
+	 * 创建一个AopProxy类,该类可以创建实际的代理对象,该类是每一个代理对象都将生成对应的 AopProxy
+	 *
 	 * Create an {@link AopProxy} for the given AOP configuration.
 	 * @param config the AOP configuration in the form of an
 	 * AdvisedSupport object

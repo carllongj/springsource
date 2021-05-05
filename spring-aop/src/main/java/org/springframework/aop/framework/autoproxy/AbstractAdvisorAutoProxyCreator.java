@@ -16,8 +16,6 @@
 
 package org.springframework.aop.framework.autoproxy;
 
-import java.util.List;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.support.AopUtils;
@@ -26,6 +24,8 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.util.List;
 
 /**
  * Generic auto proxy creator that builds AOP proxies for specific beans
@@ -70,15 +70,26 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	}
 
 
+	/**
+	 *
+	 * @param beanClass the class of the bean to advise 增强的Class 对象
+	 * @param beanName the name of the bean bean的名称
+	 * @param targetSource
+	 * @return 返回匹配到的所有增强对象集合
+	 */
 	@Override
 	@Nullable
 	protected Object[] getAdvicesAndAdvisorsForBean(
 			Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
 
+		// 查找所有的合适的增强信息
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
+
+		// 若当前增强不为空
 		if (advisors.isEmpty()) {
 			return DO_NOT_PROXY;
 		}
+		// 转换成增强数组
 		return advisors.toArray();
 	}
 
@@ -93,12 +104,19 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * @see #extendAdvisors
 	 */
 	protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
+		// 获取当期容器中的所有增强的信息
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
+
+		// 查找能匹配到当前Bean增强的增强信息
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+
+		//扩展当前的增强其
 		extendAdvisors(eligibleAdvisors);
+		// 若当前增强不为null,则对所有的增强进行排序
 		if (!eligibleAdvisors.isEmpty()) {
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
 		}
+		// 返回所有的增强
 		return eligibleAdvisors;
 	}
 
@@ -125,6 +143,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 
 		ProxyCreationContext.setCurrentProxiedBeanName(beanName);
 		try {
+			// 查找所有的增强类来适配当前的类
 			return AopUtils.findAdvisorsThatCanApply(candidateAdvisors, beanClass);
 		}
 		finally {

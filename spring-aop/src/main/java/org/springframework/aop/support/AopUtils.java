@@ -227,7 +227,9 @@ public abstract class AopUtils {
 			return false;
 		}
 
+		// 获取当前切面的匹配
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
+		// 表示全部匹配
 		if (methodMatcher == MethodMatcher.TRUE) {
 			// No need to iterate the methods if we're matching any method anyway...
 			return true;
@@ -242,11 +244,15 @@ public abstract class AopUtils {
 		if (!Proxy.isProxyClass(targetClass)) {
 			classes.add(ClassUtils.getUserClass(targetClass));
 		}
+		// 添加所有的接口类
 		classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
 
+		// 遍历所有的类
 		for (Class<?> clazz : classes) {
+			// 遍历所有类中的方法
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
 			for (Method method : methods) {
+				// 只要找到一个可以匹配到的方法适配该增强,那么该增强就是可以 应用的
 				if (introductionAwareMethodMatcher != null ?
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
 						methodMatcher.matches(method, targetClass)) {
@@ -295,29 +301,37 @@ public abstract class AopUtils {
 	}
 
 	/**
+	 * 查找所有可以匹配到的增强,方便后面为其创建代理对象
+	 *
 	 * Determine the sublist of the {@code candidateAdvisors} list
 	 * that is applicable to the given class.
-	 * @param candidateAdvisors the Advisors to evaluate
-	 * @param clazz the target class
+	 * @param candidateAdvisors the Advisors to evaluate 所有的增强对象
+	 * @param clazz the target class 目标Class对象
 	 * @return sublist of Advisors that can apply to an object of the given class
 	 * (may be the incoming List as-is)
 	 */
 	public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors, Class<?> clazz) {
+		// 当前所有的增强为空,即容器中不存在增强,则直接返回
 		if (candidateAdvisors.isEmpty()) {
 			return candidateAdvisors;
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
+
+		// 遍历所有的增强
 		for (Advisor candidate : candidateAdvisors) {
+			// 若当前增强封装的是 IntroductionAdvisor 子类
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
 			}
 		}
 		boolean hasIntroductions = !eligibleAdvisors.isEmpty();
 		for (Advisor candidate : candidateAdvisors) {
+			// IntroductionAdvisor 子类在上面已经处理过
 			if (candidate instanceof IntroductionAdvisor) {
 				// already processed
 				continue;
 			}
+
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}

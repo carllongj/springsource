@@ -50,6 +50,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
+ * 遇到对应的aop标签后,会注册额外的bean解析器
+ *
  * {@link BeanDefinitionParser} for the {@code <aop:config>} tag.
  *
  * @author Rob Harrop
@@ -103,6 +105,7 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 				new CompositeComponentDefinition(element.getTagName(), parserContext.extractSource(element));
 		parserContext.pushContainingComponent(compositeDef);
 
+		// 注册 自动代理类所需要的代理类
 		configureAutoProxyCreator(parserContext, element);
 
 		List<Element> childElts = DomUtils.getChildElements(element);
@@ -124,12 +127,15 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 	}
 
 	/**
+	 * 注册
+	 *
 	 * Configures the auto proxy creator needed to support the {@link BeanDefinition BeanDefinitions}
 	 * created by the '{@code <aop:config/>}' tag. Will force class proxying if the
 	 * '{@code proxy-target-class}' attribute is set to '{@code true}'.
 	 * @see AopNamespaceUtils
 	 */
 	private void configureAutoProxyCreator(ParserContext parserContext, Element element) {
+		// 注册 AspectJAutoProxyCreator 类
 		AopNamespaceUtils.registerAspectJAutoProxyCreatorIfNecessary(parserContext, element);
 	}
 
