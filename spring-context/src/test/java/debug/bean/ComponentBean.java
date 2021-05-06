@@ -11,4 +11,8 @@ public class ComponentBean {
 	public ComponentBean(InnerBean innerBean) {
 		this.innerBean = innerBean;
 	}
+
+	public InnerBean getInnerBean() {
+		return innerBean;
+	}
 }

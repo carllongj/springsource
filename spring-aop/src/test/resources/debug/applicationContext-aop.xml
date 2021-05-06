@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+
+	   http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+
+	<!-- 被增强的类 -->
+	<bean id="aopAdvisor" class="debug.bean.advice.AopAdvisor"/>
+
+	<!-- 增强类的属性 -->
+	<bean id="system" class="debug.bean.SystemLog"/>
+	<!--<aop:config>
+		<aop:pointcut id="systemOutPrint" expression="execution(* debug.bean.advice.*.*(..))"/>
+		<aop:advisor advice-ref="log" pointcut-ref="systemOutPrint"/>
+	</aop:config>-->
+	<aop:config>
+		<aop:pointcut id="systemOutPrint" expression="execution(* *.*(..))"/>
+		<aop:aspect ref="system">
+			<aop:before method="log" pointcut-ref="systemOutPrint"/>
+		</aop:aspect>
+	</aop:config>
+</beans>

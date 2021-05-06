@@ -9,9 +9,15 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.springframework.jdbc" level="warn" />
-		<Logger name="org.springframework.jdbc.datasource.embedded" level="warn" />
-		<Root level="error">
+
+		<!-- <Logger name="org.springframework.jdbc" level="warn" /> -->
+		<!-- 开启SQL日志打印 -->
+		<Logger name="org.springframework.jdbc" level="all" />
+
+		<!--<Logger name="org.springframework.jdbc.datasource.embedded" level="warn" />-->
+		<!-- 开启SQL日志打印 -->
+		<Logger name="org.springframework.jdbc.datasource.embedded" level="all" />
+		<Root level="TRACE">
 			<AppenderRef ref="Console" />
 			<AppenderRef ref="File" />
 		</Root>

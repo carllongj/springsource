@@ -54,8 +54,9 @@ import java.util.*;
 
 /**
  * 通过 使用 <context:annotation-config/> 或者 <context:component-scan/> 来进行注册该 Processor
+ *
  * 该 PostProcessor 在配置读取所有的 BeanDefinition 配置信息时将所有的Class类上标注了 @Configuration
- * 和 @Bean 的方法生成代理Bean,在其它的Bean生成之前.
+ * 的类,将会替换掉其 Class (在BeanDefinition 中的 class将会被替换掉), 从而生成一个代理的Class结构.
  *
  * * {@link BeanFactoryPostProcessor} used for bootstrapping processing of
  * {@link Configuration @Configuration} classes.
@@ -262,11 +263,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		for (String beanName : candidateNames) {
 			// 获取当前的BeanDefinition 信息
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
+			// 防止重复加载配置类
 			if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
+			// 只要需要进行配置类,则表示该类会做对应的处理,由 BeanDefinition 中的 attribute 决定
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				// 当前的Bean名称需要进行解析
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
@@ -274,6 +277,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		// Return immediately if no @Configuration classes were found
+		// 没有找到任何一个需要被配置的类
 		if (configCandidates.isEmpty()) {
 			return;
 		}
@@ -389,6 +393,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					}
 				}
 			}
+
+			// 只有 Full PROXY ,才会生成对应的 代理对象.
 			if (ConfigurationClassUtils.CONFIGURATION_CLASS_FULL.equals(configClassAttr)) {
 				if (!(beanDef instanceof AbstractBeanDefinition)) {
 					throw new BeanDefinitionStoreException("Cannot enhance @Configuration bean definition '" +
@@ -403,6 +409,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				configBeanDefs.put(beanName, (AbstractBeanDefinition) beanDef);
 			}
 		}
+		// 若没有Full PROXY 的实例,则直接返回
 		if (configBeanDefs.isEmpty()) {
 			// nothing to enhance -> return immediately
 			return;

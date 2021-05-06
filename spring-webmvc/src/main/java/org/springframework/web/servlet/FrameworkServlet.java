@@ -716,8 +716,9 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		if (env instanceof ConfigurableWebEnvironment) {
 			((ConfigurableWebEnvironment) env).initPropertySources(getServletContext(), getServletConfig());
 		}
-
+		// 钩子方法,
 		postProcessWebApplicationContext(wac);
+		// 应用所有对应ApplicationContext的改动
 		applyInitializers(wac);
 		// 刷新整个ApplicationContext
 		wac.refresh();
